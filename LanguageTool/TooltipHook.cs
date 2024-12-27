@@ -76,7 +76,7 @@ internal class TooltipHook : IDisposable
     {
         if (!blockItemTooltip)
         {
-            this.OnItemTooltip?.Invoke(new ItemTooltip(hoveredItem, stringArrayData));
+            this.OnItemTooltip?.Invoke(new ItemTooltip(hoveredItem, numberArrayData, stringArrayData));
         }
         else
         {

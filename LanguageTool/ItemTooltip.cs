@@ -1,16 +1,18 @@
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using System;
 
 namespace LanguageTool;
 
-internal unsafe class ItemTooltip(InventoryItem item, StringArrayData* stringArrayData)
+internal unsafe class ItemTooltip(InventoryItem item, NumberArrayData* numberArrayData, StringArrayData* stringArrayData)
 {
     public InventoryItem Item { get; set; } = item;
 
     private readonly StringArrayData* stringArrayData = stringArrayData;
+    private readonly NumberArrayData* numberArrayData = numberArrayData;
 
     public SeString GetString(ItemTooltipField field)
     {
@@ -25,6 +27,12 @@ internal unsafe class ItemTooltip(InventoryItem item, StringArrayData* stringArr
     {
         var bytes = seString.EncodeWithNullTerminator();
         stringArrayData->SetValue((int)field, bytes, false);
+    }
+
+    public static unsafe bool IsFieldVisible(ItemTooltipFields tooltipField)
+    {
+        var flags = (ItemTooltipFields)RaptureAtkModule.Instance()->AtkArrayDataHolder.GetNumberArrayData(29)->IntArray[5];
+        return flags.HasFlag(tooltipField);
     }
 
     public enum ItemTooltipField : byte
@@ -76,5 +84,26 @@ internal unsafe class ItemTooltip(InventoryItem item, StringArrayData* stringArr
         Materia5Effect = 62,
         ShopSellingPrice = 63,
         ControllerControls = 64,
+    }
+
+    [Flags]
+    public enum ItemTooltipFields
+    {
+        Crafter = 1 << 0,
+        Description = 1 << 1,
+        VendorSellPrice = 1 << 2,
+        Unknown3 = 1 << 3,
+        Bonuses = 1 << 4,
+        Materia = 1 << 5,
+        CraftingAndRepairs = 1 << 6,
+        Effects = 1 << 8,
+        DyeableIndicator = 1 << 10,
+        Stat1 = 1 << 11,
+        Stat2 = 1 << 12,
+        Stat3 = 1 << 13,
+
+        Levels = 1 << 15,
+        GlamourIndicator = 1 << 16,
+        Unknown19 = 1 << 19,
     }
 }

@@ -28,13 +28,40 @@ internal class TooltipAdditions : IDisposable
     public void OnItemTooltip(ItemTooltip itemTooltip)
     {
         var globalName = globalItem.GetRow(itemTooltip.Item.ItemId)!.ReadColumn<string>(9)!;
-        var description = itemTooltip.GetString(ItemTooltip.ItemTooltipField.Description);
 
+        ItemTooltip.ItemTooltipField targetField;
         var newString = new SeString();
-        newString.Append($"[{globalName}]");
-        newString.Append(NewLinePayload.Payload);
-        newString.Append(description);
+        if (ItemTooltip.IsFieldVisible(ItemTooltip.ItemTooltipFields.Description))
+        {
+            targetField = ItemTooltip.ItemTooltipField.Description;
+            var rawString = itemTooltip.GetString(targetField);
+            newString.Append($"[{globalName}]");
+            newString.Append(NewLinePayload.Payload);
+            newString.Append(rawString);
+        }
+        else if (ItemTooltip.IsFieldVisible(ItemTooltip.ItemTooltipFields.Effects))
+        {
+            targetField = ItemTooltip.ItemTooltipField.Effects;
+            var rawString = itemTooltip.GetString(targetField);
+            newString.Append($"[{globalName}]");
+            newString.Append(NewLinePayload.Payload);
+            newString.Append(rawString);
+        }
+        else if (ItemTooltip.IsFieldVisible(ItemTooltip.ItemTooltipFields.Levels))
+        {
+            targetField = ItemTooltip.ItemTooltipField.EquipLevel;
+            var rawString = itemTooltip.GetString(targetField);
+            newString.Append(rawString);
+            newString.Append(NewLinePayload.Payload);
+            newString.Append(new UIForegroundPayload(1));
+            newString.Append($"[{globalName}]");
+        }
+        else
+        {
+            return;
+        }
 
-        itemTooltip.SetString(ItemTooltip.ItemTooltipField.Description, newString);
+
+        itemTooltip.SetString(targetField, newString);
     }
 }
