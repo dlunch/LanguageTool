@@ -7,27 +7,9 @@ using System;
 
 namespace LanguageTool;
 
-internal unsafe class ItemTooltip(InventoryItem item, NumberArrayData* numberArrayData, StringArrayData* stringArrayData)
+internal unsafe class ItemTooltip(ulong itemId, NumberArrayData* numberArrayData, StringArrayData* stringArrayData) : TooltipBase(numberArrayData, stringArrayData)
 {
-    public InventoryItem Item { get; set; } = item;
-
-    private readonly StringArrayData* stringArrayData = stringArrayData;
-    private readonly NumberArrayData* numberArrayData = numberArrayData;
-
-    public SeString GetString(ItemTooltipField field)
-    {
-        if (stringArrayData->AtkArrayData.Size <= (int)field)
-            throw new IndexOutOfRangeException($"Attempted to get Index#{(int)field} ({field}) but size is only {stringArrayData->AtkArrayData.Size}");
-
-        var stringAddress = new IntPtr(stringArrayData->StringArray[(int)field]);
-        return MemoryHelper.ReadSeStringNullTerminated(stringAddress);
-    }
-
-    public void SetString(ItemTooltipField field, SeString seString)
-    {
-        var bytes = seString.EncodeWithNullTerminator();
-        stringArrayData->SetValue((int)field, bytes, false);
-    }
+    public ulong ItemId { get; } = itemId;
 
     public static unsafe bool IsFieldVisible(ItemTooltipFields tooltipField)
     {

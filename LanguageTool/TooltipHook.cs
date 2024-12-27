@@ -4,85 +4,67 @@ using System;
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
 using Dalamud.Plugin.Services;
+using Dalamud.Game.Gui;
 
 namespace LanguageTool;
 
 internal class TooltipHook : IDisposable
 {
-    private unsafe delegate byte ItemHoveredDelegate(IntPtr a1, IntPtr* a2, int* containerId, ushort* slotId, IntPtr a5, uint slotIdInt, IntPtr a7);
-    [Signature("E8 ?? ?? ?? ?? 84 C0 0F 84 ?? ?? ?? ?? 48 89 9C 24 ?? ?? ?? ?? 48 89 B4 24", DetourName = nameof(ItemHoveredDetour))]
-        private readonly Hook<ItemHoveredDelegate>? itemHoveredHook = null!;
-
     private unsafe delegate void* GenerateItemTooltip(AtkUnitBase* addonItemDetail, NumberArrayData* numberArrayData, StringArrayData* stringArrayData);
     [Signature("48 89 5C 24 ?? 55 56 57 41 54 41 55 41 56 41 57 48 83 EC ?? 48 8B 42 ?? 4C 8B EA", DetourName = nameof(GenerateItemTooltipDetour))]
     private readonly Hook<GenerateItemTooltip>? generateItemTooltipHook = null!;
 
-    private InventoryItem hoveredItem;
+    private unsafe delegate void* GenerateActionTooltip(AtkUnitBase* addonActionDetail, NumberArrayData* numberArrayData, StringArrayData* stringArrayData);
+    [Signature("E8 ?? ?? ?? ?? 48 8B 43 ?? 48 8B 9F", DetourName = nameof(GenerateActionTooltipDetour))]
+    private readonly Hook<GenerateActionTooltip> generateActionTooltipHook = null!;
+
     private readonly IGameGui gameGui;
 
-    public unsafe delegate void ItemTooltipDelegate(ItemTooltip itemTooltip);
+    public unsafe delegate void ItemTooltipDelegate(ItemTooltip tooltip);
     public event ItemTooltipDelegate? OnItemTooltip;
 
-    private ulong lastItem;
-    private bool blockItemTooltip;
+    public unsafe delegate void ActionTooltipDelegate(ActionTooltip tooltip);
+    public event ActionTooltipDelegate? OnActionTooltip;
+
+    private ulong lastItem = 0;
+    private ulong lastActionId = 0;
 
     public TooltipHook(IGameInteropProvider gameInteropProvider, IGameGui gameGui)
     {
         gameInteropProvider.InitializeFromAttributes(this);
 
-        itemHoveredHook?.Enable();
         generateItemTooltipHook?.Enable();
+        generateActionTooltipHook?.Enable();
 
         this.gameGui = gameGui;
-        gameGui.HoveredItemChanged += GuiOnHoveredItemChanged;
     }
 
     public void Dispose()
     {
-        gameGui.HoveredItemChanged -= GuiOnHoveredItemChanged;
-        itemHoveredHook?.Dispose();
         generateItemTooltipHook?.Dispose();
-    }
-
-    // prevent tooltip hook being called twice
-    private void GuiOnHoveredItemChanged(object? sender, ulong e)
-    {
-        if (lastItem == 0 && e != 0)
-        {
-            blockItemTooltip = true;
-            lastItem = e;
-        }
-        else if (lastItem != 0 && e == 0)
-        {
-            blockItemTooltip = true;
-            lastItem = e;
-        }
-        else
-        {
-            blockItemTooltip = false;
-            lastItem = e;
-        }
-    }
-
-
-    private unsafe byte ItemHoveredDetour(IntPtr a1, IntPtr* a2, int* containerid, ushort* slotid, IntPtr a5, uint slotidint, IntPtr a7)
-    {
-        var returnValue = itemHoveredHook!.Original(a1, a2, containerid, slotid, a5, slotidint, a7);
-        hoveredItem = *(InventoryItem*)(a7);
-        return returnValue;
+        generateActionTooltipHook?.Dispose();
     }
 
     public unsafe void* GenerateItemTooltipDetour(AtkUnitBase* addonItemDetail, NumberArrayData* numberArrayData, StringArrayData* stringArrayData)
     {
-        if (!blockItemTooltip)
+        if (lastItem != this.gameGui.HoveredItem)
         {
-            this.OnItemTooltip?.Invoke(new ItemTooltip(hoveredItem, numberArrayData, stringArrayData));
-        }
-        else
-        {
-            blockItemTooltip = false;
+            this.OnItemTooltip?.Invoke(new ItemTooltip(this.gameGui.HoveredItem, numberArrayData, stringArrayData));
+            lastItem = this.gameGui.HoveredItem;
         }
 
         return generateItemTooltipHook!.Original(addonItemDetail, numberArrayData, stringArrayData);
     }
+
+    public unsafe void* GenerateActionTooltipDetour(AtkUnitBase* addonItemDetail, NumberArrayData* numberArrayData, StringArrayData* stringArrayData)
+    {
+        if (lastActionId != this.gameGui.HoveredAction.ActionID)
+        {
+            this.OnActionTooltip?.Invoke(new ActionTooltip(this.gameGui.HoveredAction, numberArrayData, stringArrayData));
+            lastActionId = this.gameGui.HoveredAction.ActionID;
+        }
+
+        return generateActionTooltipHook.Original(addonItemDetail, numberArrayData, stringArrayData);
+    }
+
 }
