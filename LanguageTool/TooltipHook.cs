@@ -37,31 +37,51 @@ internal class TooltipHook : IDisposable
         generateActionTooltipHook?.Enable();
 
         this.gameGui = gameGui;
+        this.gameGui.HoveredItemChanged += this.OnHoveredItemChanged!;
+        this.gameGui.HoveredActionChanged += this.OnHoveredActionChanged!;
     }
 
     public void Dispose()
     {
+        this.gameGui.HoveredActionChanged -= this.OnHoveredActionChanged!;
+        this.gameGui.HoveredItemChanged -= this.OnHoveredItemChanged!;
         generateItemTooltipHook?.Dispose();
         generateActionTooltipHook?.Dispose();
     }
 
-    public unsafe void* GenerateItemTooltipDetour(AtkUnitBase* addonItemDetail, NumberArrayData* numberArrayData, StringArrayData* stringArrayData)
+    private void OnHoveredItemChanged(object sender, ulong itemId)
     {
-        if (lastItem != this.gameGui.HoveredItem)
+        if (itemId == 0)
+        {
+            this.lastItem = 0;
+        }
+    }
+
+    private void OnHoveredActionChanged(object sender, HoveredAction action)
+    {
+        if (action.ActionID == 0)
+        {
+            this.lastActionId = 0;
+        }
+    }
+
+    private unsafe void* GenerateItemTooltipDetour(AtkUnitBase* addonItemDetail, NumberArrayData* numberArrayData, StringArrayData* stringArrayData)
+    {
+        if (this.lastItem != this.gameGui.HoveredItem)
         {
             this.OnItemTooltip?.Invoke(new ItemTooltip(this.gameGui.HoveredItem, numberArrayData, stringArrayData));
-            lastItem = this.gameGui.HoveredItem;
+            this.lastItem = this.gameGui.HoveredItem;
         }
 
         return generateItemTooltipHook!.Original(addonItemDetail, numberArrayData, stringArrayData);
     }
 
-    public unsafe void* GenerateActionTooltipDetour(AtkUnitBase* addonItemDetail, NumberArrayData* numberArrayData, StringArrayData* stringArrayData)
+    private unsafe void* GenerateActionTooltipDetour(AtkUnitBase* addonItemDetail, NumberArrayData* numberArrayData, StringArrayData* stringArrayData)
     {
-        if (lastActionId != this.gameGui.HoveredAction.ActionID)
+        if (this.lastActionId != this.gameGui.HoveredAction.ActionID)
         {
             this.OnActionTooltip?.Invoke(new ActionTooltip(this.gameGui.HoveredAction, numberArrayData, stringArrayData));
-            lastActionId = this.gameGui.HoveredAction.ActionID;
+            this.lastActionId = this.gameGui.HoveredAction.ActionID;
         }
 
         return generateActionTooltipHook.Original(addonItemDetail, numberArrayData, stringArrayData);
