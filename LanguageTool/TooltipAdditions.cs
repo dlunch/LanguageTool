@@ -9,13 +9,13 @@ namespace LanguageTool;
 internal class TooltipAdditions : IDisposable
 {
     readonly TooltipHook tooltipHook;
-    RawExcelSheet globalItem;
+    RawExcelSheet additionalLanguageItems;
 
-    public TooltipAdditions(TooltipHook tooltipHook, GameData globalGameData, Configuration configuration)
+    public TooltipAdditions(TooltipHook tooltipHook, GameData additionalGameData, Configuration configuration)
     {
         this.tooltipHook = tooltipHook;
 
-        this.globalItem = globalGameData.Excel.GetSheetRaw("Item", configuration.GlobalLanguage)!;
+        this.additionalLanguageItems = additionalGameData.Excel.GetSheetRaw("Item", configuration.AdditionalLanguage)!;
 
         tooltipHook.OnItemTooltip += this.OnItemTooltip;
     }
@@ -27,7 +27,7 @@ internal class TooltipAdditions : IDisposable
 
     public void OnItemTooltip(ItemTooltip itemTooltip)
     {
-        var globalName = globalItem.GetRow(itemTooltip.Item.ItemId)!.ReadColumn<string>(9)!;
+        var additionalLanguageName = additionalLanguageItems.GetRow(itemTooltip.Item.ItemId)!.ReadColumn<string>(9)!;
 
         ItemTooltip.ItemTooltipField targetField;
         var newString = new SeString();
@@ -35,7 +35,7 @@ internal class TooltipAdditions : IDisposable
         {
             targetField = ItemTooltip.ItemTooltipField.Description;
             var rawString = itemTooltip.GetString(targetField);
-            newString.Append($"[{globalName}]");
+            newString.Append($"[{additionalLanguageName}]");
             newString.Append(NewLinePayload.Payload);
             newString.Append(rawString);
         }
@@ -43,7 +43,7 @@ internal class TooltipAdditions : IDisposable
         {
             targetField = ItemTooltip.ItemTooltipField.Effects;
             var rawString = itemTooltip.GetString(targetField);
-            newString.Append($"[{globalName}]");
+            newString.Append($"[{additionalLanguageName}]");
             newString.Append(NewLinePayload.Payload);
             newString.Append(rawString);
         }
@@ -54,7 +54,7 @@ internal class TooltipAdditions : IDisposable
             newString.Append(rawString);
             newString.Append(NewLinePayload.Payload);
             newString.Append(new UIForegroundPayload(1));
-            newString.Append($"[{globalName}]");
+            newString.Append($"[{additionalLanguageName}]");
         }
         else
         {

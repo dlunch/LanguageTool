@@ -21,10 +21,10 @@ public class ConfigWindow : Window, IDisposable
 
     public override void Draw()
     {
-        var globalGamePath = this.configuration.GlobalGamePath;
-        if (ImGui.InputText("Global Game Path", ref globalGamePath, 255))
+        var additionalGameData = this.configuration.AdditionalGamePath;
+        if (ImGui.InputText("Additional Game Path", ref additionalGameData, 255))
         {
-            this.configuration.GlobalGamePath = globalGamePath;
+            this.configuration.AdditionalGamePath = additionalGameData;
             this.configuration.Save();
         }
     }

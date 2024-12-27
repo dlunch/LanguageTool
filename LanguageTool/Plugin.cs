@@ -4,6 +4,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using LanguageTool.Windows;
 using Lumina;
+using System;
 
 namespace LanguageTool;
 
@@ -17,7 +18,7 @@ public sealed class Plugin : IDalamudPlugin
     public Configuration Configuration { get; init; } = null!;
     private ConfigWindow ConfigWindow { get; init; } = null!;
     private TooltipHook TooltipHook { get; init; } = null!;
-    private TooltipAdditions TooltipAdditions { get; init; } = null!;
+    private TooltipAdditions? TooltipAdditions { get; init; } = null;
 
     public readonly WindowSystem WindowSystem = new("LanguageTool");
 
@@ -33,9 +34,14 @@ public sealed class Plugin : IDalamudPlugin
 
         TooltipHook = new TooltipHook(GameInteropProvider, GameGui);
 
-        var globalGameData = new GameData(Configuration.GlobalGamePath);
-
-        TooltipAdditions = new TooltipAdditions(TooltipHook, globalGameData, Configuration);
+        try
+        {
+            var additionalGameData = new GameData(Configuration.AdditionalGamePath);
+            TooltipAdditions = new TooltipAdditions(TooltipHook, additionalGameData, Configuration);
+        }
+        catch (Exception)
+        {
+        }
     }
 
     public void Dispose()
@@ -44,7 +50,7 @@ public sealed class Plugin : IDalamudPlugin
         ConfigWindow.Dispose();
 
         TooltipHook.Dispose();
-        TooltipAdditions.Dispose();
+        TooltipAdditions?.Dispose();
     }
 
     private void DrawUI() => WindowSystem.Draw();
