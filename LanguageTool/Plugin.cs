@@ -21,6 +21,7 @@ public sealed class Plugin : IDalamudPlugin
     private ConfigWindow ConfigWindow { get; init; } = null!;
     private TooltipHook TooltipHook { get; init; } = null!;
     private TooltipAdditions? TooltipAdditions { get; init; } = null;
+    private JournalAddition? JournalAddition { get; init; } = null;
 
     public readonly WindowSystem WindowSystem = new("LanguageTool");
 
@@ -48,6 +49,7 @@ public sealed class Plugin : IDalamudPlugin
                 additionalLanguageData = DataManager.GameData;
             }
             TooltipAdditions = new TooltipAdditions(TooltipHook, additionalLanguageData, Configuration);
+            JournalAddition = new JournalAddition(GameInteropProvider, GameGui, additionalLanguageData, Configuration);
         }
         catch (Exception)
         {
@@ -56,11 +58,12 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
-        WindowSystem.RemoveAllWindows();
-        ConfigWindow.Dispose();
-
-        TooltipHook.Dispose();
+        JournalAddition?.Dispose();
         TooltipAdditions?.Dispose();
+        TooltipHook.Dispose();
+
+        ConfigWindow.Dispose();
+        WindowSystem.RemoveAllWindows();
     }
 
     private void DrawUI() => WindowSystem.Draw();
