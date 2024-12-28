@@ -1,9 +1,9 @@
 using Dalamud.Game.Gui;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace LanguageTool;
+namespace LanguageTool.Hooks.Tooltip;
 
-internal unsafe class ActionTooltip(HoveredAction action, NumberArrayData* numberArrayData, StringArrayData* stringArrayData): TooltipBase(numberArrayData, stringArrayData)
+internal unsafe class ActionTooltip(HoveredAction action, NumberArrayData* numberArrayData, StringArrayData* stringArrayData) : TooltipBase(numberArrayData, stringArrayData)
 {
     public HoveredAction Action { get; } = action;
 

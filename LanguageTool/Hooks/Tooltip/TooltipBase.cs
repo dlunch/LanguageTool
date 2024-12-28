@@ -3,7 +3,7 @@ using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using System;
 
-namespace LanguageTool;
+namespace LanguageTool.Hooks.Tooltip;
 
 internal unsafe class TooltipBase(NumberArrayData* numberArrayData, StringArrayData* stringArrayData)
 {
@@ -15,13 +15,13 @@ internal unsafe class TooltipBase(NumberArrayData* numberArrayData, StringArrayD
         if (stringArrayData->AtkArrayData.Size <= field)
             throw new IndexOutOfRangeException($"Attempted to get Index#{field} ({field}) but size is only {stringArrayData->AtkArrayData.Size}");
 
-        var stringAddress = new IntPtr(stringArrayData->StringArray[field]);
+        var stringAddress = new nint(stringArrayData->StringArray[field]);
         return MemoryHelper.ReadSeStringNullTerminated(stringAddress);
     }
 
     public void SetString(int field, SeString seString)
     {
         var bytes = seString.EncodeWithNullTerminator();
-        stringArrayData->SetValue((int)field, bytes, false);
+        stringArrayData->SetValue(field, bytes, false);
     }
 }

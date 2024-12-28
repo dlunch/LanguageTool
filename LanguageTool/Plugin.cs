@@ -2,6 +2,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using LanguageTool.Hooks.Tooltip;
 using LanguageTool.Windows;
 using Lumina;
 using System;

@@ -5,7 +5,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using System;
 
-namespace LanguageTool;
+namespace LanguageTool.Hooks.Tooltip;
 
 internal unsafe class ItemTooltip(ulong itemId, NumberArrayData* numberArrayData, StringArrayData* stringArrayData) : TooltipBase(numberArrayData, stringArrayData)
 {

@@ -1,4 +1,3 @@
-using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using System;
 using Dalamud.Hooking;
@@ -6,7 +5,7 @@ using Dalamud.Utility.Signatures;
 using Dalamud.Plugin.Services;
 using Dalamud.Game.Gui;
 
-namespace LanguageTool;
+namespace LanguageTool.Hooks.Tooltip;
 
 internal class TooltipHook : IDisposable
 {
@@ -37,14 +36,14 @@ internal class TooltipHook : IDisposable
         generateActionTooltipHook?.Enable();
 
         this.gameGui = gameGui;
-        this.gameGui.HoveredItemChanged += this.OnHoveredItemChanged!;
-        this.gameGui.HoveredActionChanged += this.OnHoveredActionChanged!;
+        this.gameGui.HoveredItemChanged += OnHoveredItemChanged!;
+        this.gameGui.HoveredActionChanged += OnHoveredActionChanged!;
     }
 
     public void Dispose()
     {
-        this.gameGui.HoveredActionChanged -= this.OnHoveredActionChanged!;
-        this.gameGui.HoveredItemChanged -= this.OnHoveredItemChanged!;
+        gameGui.HoveredActionChanged -= OnHoveredActionChanged!;
+        gameGui.HoveredItemChanged -= OnHoveredItemChanged!;
         generateItemTooltipHook?.Dispose();
         generateActionTooltipHook?.Dispose();
     }
@@ -53,7 +52,7 @@ internal class TooltipHook : IDisposable
     {
         if (itemId == 0)
         {
-            this.lastItem = 0;
+            lastItem = 0;
         }
     }
 
@@ -61,16 +60,16 @@ internal class TooltipHook : IDisposable
     {
         if (action.ActionID == 0)
         {
-            this.lastActionId = 0;
+            lastActionId = 0;
         }
     }
 
     private unsafe void* GenerateItemTooltipDetour(AtkUnitBase* addonItemDetail, NumberArrayData* numberArrayData, StringArrayData* stringArrayData)
     {
-        if (this.lastItem != this.gameGui.HoveredItem)
+        if (lastItem != gameGui.HoveredItem)
         {
-            this.OnItemTooltip?.Invoke(new ItemTooltip(this.gameGui.HoveredItem, numberArrayData, stringArrayData));
-            this.lastItem = this.gameGui.HoveredItem;
+            OnItemTooltip?.Invoke(new ItemTooltip(gameGui.HoveredItem, numberArrayData, stringArrayData));
+            lastItem = gameGui.HoveredItem;
         }
 
         return generateItemTooltipHook!.Original(addonItemDetail, numberArrayData, stringArrayData);
@@ -78,10 +77,10 @@ internal class TooltipHook : IDisposable
 
     private unsafe void* GenerateActionTooltipDetour(AtkUnitBase* addonItemDetail, NumberArrayData* numberArrayData, StringArrayData* stringArrayData)
     {
-        if (this.lastActionId != this.gameGui.HoveredAction.ActionID)
+        if (lastActionId != gameGui.HoveredAction.ActionID)
         {
-            this.OnActionTooltip?.Invoke(new ActionTooltip(this.gameGui.HoveredAction, numberArrayData, stringArrayData));
-            this.lastActionId = this.gameGui.HoveredAction.ActionID;
+            OnActionTooltip?.Invoke(new ActionTooltip(gameGui.HoveredAction, numberArrayData, stringArrayData));
+            lastActionId = gameGui.HoveredAction.ActionID;
         }
 
         return generateActionTooltipHook.Original(addonItemDetail, numberArrayData, stringArrayData);

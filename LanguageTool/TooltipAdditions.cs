@@ -1,5 +1,6 @@
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using LanguageTool.Hooks.Tooltip;
 using Lumina;
 using Lumina.Excel;
 using System;
