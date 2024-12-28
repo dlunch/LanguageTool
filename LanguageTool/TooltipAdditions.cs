@@ -9,16 +9,16 @@ namespace LanguageTool;
 
 internal class TooltipAdditions : IDisposable
 {
-    readonly TooltipHook tooltipHook;
-    RawExcelSheet additionalLanguageItems;
-    RawExcelSheet additionalLanguageActions;
+    private readonly TooltipHook tooltipHook;
+    private readonly RawExcelSheet additionalLanguageItems;
+    private readonly RawExcelSheet additionalLanguageActions;
 
-    public TooltipAdditions(TooltipHook tooltipHook, GameData additionalGameData, Configuration configuration)
+    public TooltipAdditions(TooltipHook tooltipHook, GameData additionalLanguageGameData, Configuration configuration)
     {
         this.tooltipHook = tooltipHook;
 
-        this.additionalLanguageItems = additionalGameData.Excel.GetSheetRaw("Item", configuration.AdditionalLanguage)!;
-        this.additionalLanguageActions = additionalGameData.Excel.GetSheetRaw("Action", configuration.AdditionalLanguage)!;
+        this.additionalLanguageItems = additionalLanguageGameData.Excel.GetSheetRaw("Item", configuration.AdditionalLanguage)!;
+        this.additionalLanguageActions = additionalLanguageGameData.Excel.GetSheetRaw("Action", configuration.AdditionalLanguage)!;
 
         tooltipHook.OnItemTooltip += this.OnItemTooltip;
         tooltipHook.OnActionTooltip += this.OnActionTooltip;
@@ -32,7 +32,11 @@ internal class TooltipAdditions : IDisposable
 
     private void OnItemTooltip(ItemTooltip tooltip)
     {
-        var additionalLanguageName = additionalLanguageItems.GetRow((uint)tooltip.ItemId)!.ReadColumn<string>(9)!;
+        var additionalLanguageName = additionalLanguageItems.GetRow((uint)tooltip.ItemId)?.ReadColumn<string>(9);
+        if (additionalLanguageName == null)
+        {
+            return;
+        }
 
         ItemTooltip.ItemTooltipField targetField;
         var newString = new SeString();
@@ -72,7 +76,11 @@ internal class TooltipAdditions : IDisposable
 
     private void OnActionTooltip(ActionTooltip tooltip)
     {
-        var additionalLanguageName = additionalLanguageActions.GetRow((uint)tooltip.Action.ActionID)!.ReadColumn<string>(0)!;
+        var additionalLanguageName = additionalLanguageActions.GetRow(tooltip.Action.ActionID)?.ReadColumn<string>(0);
+        if (additionalLanguageName == null)
+        {
+            return;
+        }
 
         var rawString = tooltip.GetString((int)ActionTooltip.ActionTooltipField.Description);
         var newString = new SeString();

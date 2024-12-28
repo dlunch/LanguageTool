@@ -2,6 +2,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using LanguageTool.Hooks.Tooltip;
 using LanguageTool.Windows;
 using Lumina;
@@ -15,7 +16,6 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static IGameInteropProvider GameInteropProvider { get; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
-    [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
 
     public Configuration Configuration { get; init; } = null!;
     private ConfigWindow ConfigWindow { get; init; } = null!;
@@ -36,10 +36,18 @@ public sealed class Plugin : IDalamudPlugin
 
         TooltipHook = new TooltipHook(GameInteropProvider, GameGui);
 
+        GameData additionalLanguageData;
         try
         {
-            var additionalGameData = new GameData(Configuration.AdditionalGamePath);
-            TooltipAdditions = new TooltipAdditions(TooltipHook, additionalGameData, Configuration);
+            if (!Configuration.AdditionalGamePath.IsNullOrEmpty())
+            {
+                additionalLanguageData = new GameData(Configuration.AdditionalGamePath);
+            }
+            else
+            {
+                additionalLanguageData = DataManager.GameData;
+            }
+            TooltipAdditions = new TooltipAdditions(TooltipHook, additionalLanguageData, Configuration);
         }
         catch (Exception)
         {
