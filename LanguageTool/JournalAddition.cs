@@ -36,19 +36,21 @@ internal class JournalAddition : IDisposable
 
     public void Dispose()
     {
-        this.journalDetailOnRefresh?.Disable();
+        this.journalDetailOnRefresh?.Dispose();
     }
 
     private unsafe void OnJournalDetailRefresh(AddonJournalDetail *addon, uint valueCount, AtkValue* values)
     {
         journalDetailOnRefresh?.Original(addon, valueCount, values);
 
-        var agentQuestJournal = AgentQuestJournal.Instance();
-
         var text = addon->DutyNameTextNode->NodeText;
-        var questId = agentQuestJournal->SelectedQuestId;
-        var exdQuestId = questId + 65535; // why?
+        var questId = ((uint*)addon)[140];
+        if (questId == 0)
+        {
+            return;
+        }
 
+        var exdQuestId = questId + 65535; // why?
         var additionalLanguageName = additionalLanguageQuests.GetRow(exdQuestId)?.ReadColumn<string>(0);
         if (additionalLanguageName.IsNullOrEmpty())
         {
