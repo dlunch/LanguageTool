@@ -50,7 +50,7 @@ internal class JournalAddition : IDisposable
             return;
         }
 
-        var exdQuestId = questId + 65535; // why?
+        var exdQuestId = questId + 65536; // why?
         var additionalLanguageName = additionalLanguageQuests.GetRow(exdQuestId)?.ReadColumn<string>(0);
         if (additionalLanguageName.IsNullOrEmpty())
         {
