@@ -16,6 +16,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static IGameInteropProvider GameInteropProvider { get; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
+    [PluginService] internal static IAddonLifecycle AddonLifecycle { get; private set; } = null!;
 
     public Configuration Configuration { get; init; } = null!;
     private ConfigWindow ConfigWindow { get; init; } = null!;
@@ -49,7 +50,7 @@ public sealed class Plugin : IDalamudPlugin
                 additionalLanguageData = DataManager.GameData;
             }
             TooltipAdditions = new TooltipAdditions(TooltipHook, additionalLanguageData, Configuration);
-            JournalAddition = new JournalAddition(GameInteropProvider, GameGui, additionalLanguageData, Configuration);
+            JournalAddition = new JournalAddition(GameInteropProvider, AddonLifecycle, GameGui, additionalLanguageData, Configuration);
         }
         catch (Exception)
         {

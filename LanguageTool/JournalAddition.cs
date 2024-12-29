@@ -7,7 +7,6 @@ using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina;
 using Lumina.Excel;
@@ -22,16 +21,19 @@ internal class JournalAddition : IDisposable
     private readonly Hook<JournalDetailRefresh>? journalDetailOnRefresh = null!;
 
     private readonly IGameGui gameGui;
+    private readonly IAddonLifecycle addonLifecycle;
     private readonly RawExcelSheet additionalLanguageQuests;
 
-    public JournalAddition(IGameInteropProvider gameInteropProvider, IGameGui gameGui, GameData additionalLanguageGameData, Configuration configuration)
+    public JournalAddition(IGameInteropProvider gameInteropProvider, IAddonLifecycle addonLifecycle, IGameGui gameGui, GameData additionalLanguageGameData, Configuration configuration)
     {
         gameInteropProvider.InitializeFromAttributes(this);
         this.gameGui = gameGui;
+        this.addonLifecycle = addonLifecycle;
 
         this.additionalLanguageQuests = additionalLanguageGameData.Excel.GetSheetRaw("Quest", configuration.AdditionalLanguage)!;
 
         this.journalDetailOnRefresh?.Enable();
+        addonLifecycle.RegisterListener(AddonEvent.PostSetup, "JournalAccept", OnJournalAcceptPostSetup);
     }
 
     public void Dispose()
@@ -39,26 +41,55 @@ internal class JournalAddition : IDisposable
         this.journalDetailOnRefresh?.Dispose();
     }
 
+    private string? getAdditionalLanguageName(uint questId)
+    {
+        if (questId == 0)
+        {
+            return null;
+        }
+
+        var exdQuestId = questId + 65536; // why?
+        return additionalLanguageQuests.GetRow(exdQuestId)?.ReadColumn<string>(0);
+    }
+
     private unsafe void OnJournalDetailRefresh(AddonJournalDetail *addon, uint valueCount, AtkValue* values)
     {
         journalDetailOnRefresh?.Original(addon, valueCount, values);
 
-        var text = addon->DutyNameTextNode->NodeText;
         var questId = ((uint*)addon)[140];
-        if (questId == 0)
+        var questType = ((uint*)addon)[141];
+        if (questType != 1)
         {
             return;
         }
 
-        var exdQuestId = questId + 65536; // why?
-        var additionalLanguageName = additionalLanguageQuests.GetRow(exdQuestId)?.ReadColumn<string>(0);
+        var additionalLanguageName = getAdditionalLanguageName(questId);
         if (additionalLanguageName.IsNullOrEmpty())
         {
             return;
         }
 
+        var text = addon->DutyNameTextNode->NodeText;
         var newText = text + $"\n[{additionalLanguageName}]";
 
         addon->DutyNameTextNode->SetText(newText);
+    }
+
+    private unsafe void OnJournalAcceptPostSetup(AddonEvent type, AddonArgs args)
+    {
+        var addon = (AtkUnitBase *)args.Addon;
+
+        var questId = ((uint*)addon)[172];
+        var additionalLanguageName = getAdditionalLanguageName(questId);
+        if (additionalLanguageName.IsNullOrEmpty())
+        {
+            return;
+        }
+
+        var textNode = (AtkTextNode*)addon->GetNodeById(34);
+        var text = textNode->NodeText;
+        var newText = text + $"\n[{additionalLanguageName}]";
+
+        textNode->SetText(newText);
     }
 }
