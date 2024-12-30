@@ -1,9 +1,11 @@
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using LanguageTool.Hooks.Tooltip;
 using Lumina;
 using Lumina.Excel;
 using System;
+using System.Text.RegularExpressions;
 
 namespace LanguageTool;
 
@@ -12,6 +14,12 @@ internal class TooltipAdditions : IDisposable
     private readonly TooltipHook tooltipHook;
     private readonly RawExcelSheet additionalLanguageItems;
     private readonly RawExcelSheet additionalLanguageActions;
+    private readonly RawExcelSheet additionalLanguageTraits;
+    private readonly RawExcelSheet additionalLanguageExtraCommand;
+    private readonly RawExcelSheet additionalLanguageMainCommand;
+    private readonly RawExcelSheet additionalLanguageGeneralAction;
+    private readonly RawExcelSheet additionalLanguagePetAction;
+
 
     public TooltipAdditions(TooltipHook tooltipHook, GameData additionalLanguageGameData, Configuration configuration)
     {
@@ -19,6 +27,11 @@ internal class TooltipAdditions : IDisposable
 
         this.additionalLanguageItems = additionalLanguageGameData.Excel.GetSheetRaw("Item", configuration.AdditionalLanguage)!;
         this.additionalLanguageActions = additionalLanguageGameData.Excel.GetSheetRaw("Action", configuration.AdditionalLanguage)!;
+        this.additionalLanguageTraits = additionalLanguageGameData.Excel.GetSheetRaw("Trait", configuration.AdditionalLanguage)!;
+        this.additionalLanguageExtraCommand = additionalLanguageGameData.Excel.GetSheetRaw("ExtraCommand", configuration.AdditionalLanguage)!;
+        this.additionalLanguageMainCommand = additionalLanguageGameData.Excel.GetSheetRaw("MainCommand", configuration.AdditionalLanguage)!;
+        this.additionalLanguageGeneralAction = additionalLanguageGameData.Excel.GetSheetRaw("GeneralAction", configuration.AdditionalLanguage)!;
+        this.additionalLanguagePetAction = additionalLanguageGameData.Excel.GetSheetRaw("PetAction", configuration.AdditionalLanguage)!;
 
         tooltipHook.OnItemTooltip += this.OnItemTooltip;
         tooltipHook.OnActionTooltip += this.OnActionTooltip;
@@ -76,7 +89,24 @@ internal class TooltipAdditions : IDisposable
 
     private void OnActionTooltip(ActionTooltip tooltip)
     {
-        var additionalLanguageName = additionalLanguageActions.GetRow(tooltip.Action.ActionID)?.ReadColumn<string>(0);
+        var additionalLanguageName = tooltip.Action.ActionKind switch
+        {
+            HoverActionKind.Action =>
+                additionalLanguageActions.GetRow(tooltip.Action.ActionID)?.ReadColumn<string>(0),
+            HoverActionKind.Trait =>
+                additionalLanguageTraits.GetRow(tooltip.Action.ActionID)?.ReadColumn<string>(0),
+            HoverActionKind.ExtraCommand =>
+                additionalLanguageExtraCommand.GetRow(tooltip.Action.ActionID)?.ReadColumn<string>(0),
+            HoverActionKind.MainCommand =>
+                additionalLanguageMainCommand.GetRow(tooltip.Action.ActionID)?.ReadColumn<string>(5),
+            HoverActionKind.GeneralAction =>
+                additionalLanguageGeneralAction.GetRow(tooltip.Action.ActionID)?.ReadColumn<string>(0),
+            HoverActionKind.PetOrder =>
+                additionalLanguagePetAction.GetRow(tooltip.Action.ActionID)?.ReadColumn<string>(0),
+            _ => null,
+        };
+
+
         if (additionalLanguageName == null)
         {
             return;
