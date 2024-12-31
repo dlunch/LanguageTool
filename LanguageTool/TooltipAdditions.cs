@@ -19,6 +19,7 @@ internal class TooltipAdditions : IDisposable
     private readonly RawExcelSheet additionalLanguageMainCommand;
     private readonly RawExcelSheet additionalLanguageGeneralAction;
     private readonly RawExcelSheet additionalLanguagePetAction;
+    private readonly RawExcelSheet additionalLanguageBuddyAction;
 
 
     public TooltipAdditions(TooltipHook tooltipHook, GameData additionalLanguageGameData, Configuration configuration)
@@ -32,6 +33,7 @@ internal class TooltipAdditions : IDisposable
         this.additionalLanguageMainCommand = additionalLanguageGameData.Excel.GetSheetRaw("MainCommand", configuration.AdditionalLanguage)!;
         this.additionalLanguageGeneralAction = additionalLanguageGameData.Excel.GetSheetRaw("GeneralAction", configuration.AdditionalLanguage)!;
         this.additionalLanguagePetAction = additionalLanguageGameData.Excel.GetSheetRaw("PetAction", configuration.AdditionalLanguage)!;
+        this.additionalLanguageBuddyAction = additionalLanguageGameData.Excel.GetSheetRaw("BuddyAction", configuration.AdditionalLanguage)!;
 
         tooltipHook.OnItemTooltip += this.OnItemTooltip;
         tooltipHook.OnActionTooltip += this.OnActionTooltip;
@@ -103,6 +105,8 @@ internal class TooltipAdditions : IDisposable
                 additionalLanguageGeneralAction.GetRow(tooltip.Action.ActionID)?.ReadColumn<string>(0),
             HoverActionKind.PetOrder =>
                 additionalLanguagePetAction.GetRow(tooltip.Action.ActionID)?.ReadColumn<string>(0),
+            HoverActionKind.CompanionOrder =>
+                additionalLanguageBuddyAction.GetRow(tooltip.Action.ActionID)?.ReadColumn<string>(0),
             _ => null,
         };
 
