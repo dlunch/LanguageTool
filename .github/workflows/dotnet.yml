@@ -1,0 +1,40 @@
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        types:
+            - opened
+            - synchronize
+
+name: .NET Core Desktop
+
+jobs:
+    build:
+        strategy:
+            matrix:
+                configuration: [Debug, Release]
+
+        runs-on: windows-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  submodules: "recursive"
+
+            - name: Install .NET Core
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 8.0.x
+
+            - name: Setup MSBuild.exe
+              uses: microsoft/setup-msbuild@v2
+
+            - name: Download Dalamud
+              run: |
+                  Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/api11/latest.zip -OutFile latest.zip
+                  Expand-Archive -Force latest.zip "$env:AppData\XIVLauncherKR\addon\Hooks\dev"
+
+            - name: Execute unit tests
+              run: dotnet test
