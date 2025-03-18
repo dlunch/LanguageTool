@@ -10,6 +10,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina;
 using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using System;
 
 namespace LanguageTool;
@@ -22,7 +23,7 @@ internal class JournalAddition : IDisposable
 
     private readonly IGameGui gameGui;
     private readonly IAddonLifecycle addonLifecycle;
-    private readonly RawExcelSheet additionalLanguageQuests;
+    private readonly ExcelSheet<Quest> additionalLanguageQuests;
 
     public JournalAddition(IGameInteropProvider gameInteropProvider, IAddonLifecycle addonLifecycle, IGameGui gameGui, GameData additionalLanguageGameData, Configuration configuration)
     {
@@ -30,7 +31,7 @@ internal class JournalAddition : IDisposable
         this.gameGui = gameGui;
         this.addonLifecycle = addonLifecycle;
 
-        this.additionalLanguageQuests = additionalLanguageGameData.Excel.GetSheetRaw("Quest", configuration.AdditionalLanguage)!;
+        this.additionalLanguageQuests = additionalLanguageGameData.Excel.GetSheet<Quest>(configuration.AdditionalLanguage)!;
 
         this.journalDetailOnRefresh?.Enable();
         addonLifecycle.RegisterListener(AddonEvent.PostSetup, "JournalAccept", OnJournalAcceptPostSetup);
@@ -49,7 +50,7 @@ internal class JournalAddition : IDisposable
         }
 
         var exdQuestId = questId + 65536; // why?
-        return additionalLanguageQuests.GetRow(exdQuestId)?.ReadColumn<string>(0);
+        return additionalLanguageQuests.GetRow(exdQuestId).Name.ToString();
     }
 
     private unsafe void OnJournalDetailRefresh(AddonJournalDetail *addon, uint valueCount, AtkValue* values)
