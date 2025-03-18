@@ -48,7 +48,7 @@ internal class TooltipAdditions : IDisposable
 
     private void OnItemTooltip(ItemTooltip tooltip)
     {
-        var additionalLanguageName = additionalLanguageItems.GetRow((uint)tooltip.ItemId).Name.ToString();
+        var additionalLanguageName = additionalLanguageItems.GetRowOrDefault((uint)tooltip.ItemId)?.Name.ToString();
         if (additionalLanguageName == null)
         {
             return;
@@ -95,19 +95,19 @@ internal class TooltipAdditions : IDisposable
         var additionalLanguageName = tooltip.Action.ActionKind switch
         {
             HoverActionKind.Action =>
-                additionalLanguageActions.GetRow(tooltip.Action.ActionID).Name.ToString(),
+                additionalLanguageActions.GetRowOrDefault(tooltip.Action.ActionID)?.Name.ToString(),
             HoverActionKind.Trait =>
-                additionalLanguageTraits.GetRow(tooltip.Action.ActionID).Name.ToString(),
+                additionalLanguageTraits.GetRowOrDefault(tooltip.Action.ActionID)?.Name.ToString(),
             HoverActionKind.ExtraCommand =>
-                additionalLanguageExtraCommand.GetRow(tooltip.Action.ActionID).Name.ToString(),
+                additionalLanguageExtraCommand.GetRowOrDefault(tooltip.Action.ActionID)?.Name.ToString(),
             HoverActionKind.MainCommand =>
-                additionalLanguageMainCommand.GetRow(tooltip.Action.ActionID).Name.ToString(),
+                additionalLanguageMainCommand.GetRowOrDefault(tooltip.Action.ActionID)?.Name.ToString(),
             HoverActionKind.GeneralAction =>
-                additionalLanguageGeneralAction.GetRow(tooltip.Action.ActionID).Name.ToString(),
+                additionalLanguageGeneralAction.GetRowOrDefault(tooltip.Action.ActionID)?.Name.ToString(),
             HoverActionKind.PetOrder =>
-                additionalLanguagePetAction.GetRow(tooltip.Action.ActionID).Name.ToString(),
+                additionalLanguagePetAction.GetRowOrDefault(tooltip.Action.ActionID)?.Name.ToString(),
             HoverActionKind.CompanionOrder =>
-                additionalLanguageBuddyAction.GetRow(tooltip.Action.ActionID).Name.ToString(),
+                additionalLanguageBuddyAction.GetRowOrDefault(tooltip.Action.ActionID)?.Name.ToString(),
             _ => null,
         };
 

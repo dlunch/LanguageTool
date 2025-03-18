@@ -50,7 +50,7 @@ internal class JournalAddition : IDisposable
         }
 
         var exdQuestId = questId + 65536; // why?
-        return additionalLanguageQuests.GetRow(exdQuestId).Name.ToString();
+        return additionalLanguageQuests.GetRowOrDefault(exdQuestId)?.Name.ToString();
     }
 
     private unsafe void OnJournalDetailRefresh(AddonJournalDetail *addon, uint valueCount, AtkValue* values)
