@@ -18,7 +18,7 @@ namespace LanguageTool;
 internal class JournalAddition : IDisposable
 {
     private unsafe delegate void JournalDetailRefresh(AddonJournalDetail* addon, uint valueCount, AtkValue* values);
-    [Signature("4C 8B DC 53 41 54 41 56 48 81 EC 40 01 00 00 48 8B 05 ?? ?? ?? ?? 48 33 C4", DetourName = nameof(OnJournalDetailRefresh))]
+    [Signature("4C 8B DC 53 41 54 41 56 48 81 EC 30 01 00 00 48 8B 05 ?? ?? ?? ?? 48 33 C4", DetourName = nameof(OnJournalDetailRefresh))]
     private readonly Hook<JournalDetailRefresh>? journalDetailOnRefresh = null!;
 
     private readonly IGameGui gameGui;
@@ -57,8 +57,8 @@ internal class JournalAddition : IDisposable
     {
         journalDetailOnRefresh?.Original(addon, valueCount, values);
 
-        var questId = ((uint*)addon)[140];
-        var questType = ((uint*)addon)[141];
+        var questId = ((uint*)addon)[142];
+        var questType = ((uint*)addon)[143];
         if (questType != 1)
         {
             return;
