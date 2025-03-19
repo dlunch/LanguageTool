@@ -80,7 +80,7 @@ internal class JournalAddition : IDisposable
     {
         var addon = (AtkUnitBase *)args.Addon;
 
-        var questId = ((uint*)addon)[172];
+        var questId = ((uint*)addon)[174];
         var additionalLanguageName = getAdditionalLanguageName(questId);
         if (additionalLanguageName.IsNullOrEmpty())
         {
